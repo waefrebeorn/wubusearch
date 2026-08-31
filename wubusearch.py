@@ -179,7 +179,8 @@ class NVIDIABackend(BaseBackend):
 
     def embed_text(self, text: str) -> np.ndarray:
         response = self.client.embeddings.create(
-            model=self.model, input=text, encoding_format="float"
+            model=self.model, input=text, encoding_format="float",
+            extra_body={"input_type": "passage", "truncate": "END"}
         )
         return np.array(response.data[0].embedding, dtype=np.float32)
 
@@ -241,9 +242,11 @@ class OpenRouterBackend(BaseBackend):
             img_b64 = base64.b64encode(f.read()).decode()
         ext = os.path.splitext(image_path)[1].lower()
         mime = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}.get(ext, "image/png")
-        content = [{"type": "image_url", "image_url": {"url": f"data:{mime};base64,{img_b64}"}}]
+        # OpenRouter uses the same format as OpenAI for image embeddings
         try:
-            response = self.client.embeddings.create(model=self.model, input=content)
+            response = self.client.embeddings.create(
+                model=self.model, input=f"data:{mime};base64,{img_b64}"
+            )
             return np.array(response.data[0].embedding, dtype=np.float32)
         except Exception:
             return self.embed_text(f"image:{os.path.basename(image_path)}")
@@ -296,7 +299,7 @@ class GeminiBackend(BaseBackend):
 def get_backend(backend_name: str = None, **kwargs) -> BaseBackend:
     """Factory to create the appropriate backend."""
     config = load_config()
-    backend_name = backend_name or config.get("default_backend", "nvidia")
+    backend_name = backend_name or config.get("default_backend", "openrouter")
 
     if backend_name == "nvidia":
         return NVIDIABackend(model=kwargs.get("model"), rpm=kwargs.get("rpm", 60))
