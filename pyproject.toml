@@ -1,0 +1,23 @@
+[project]
+name = "wubusearch"
+version = "0.1.0"
+description = "WuBuSearch — Universal embedding search engine"
+readme = "README.md"
+license = {text = "WaefreBeorn Umbrella v3.0"}
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "openai>=1.0",
+]
+
+[project.optional-dependencies]
+nvidia = ["openai>=1.0"]
+gemini = ["google-genai>=1.0"]
+all = ["numpy>=1.24", "openai>=1.0", "google-genai>=1.0"]
+
+[project.scripts]
+wubusearch = "wubusearch:main"
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
